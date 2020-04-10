@@ -7,9 +7,11 @@ defmodule DomainsCounterEx.Application do
 
   def start(_type, _args) do
     # List all child processes to be supervised
+    repo_opts = Application.get_env(:domains_counter_ex, :redis_uri)
+
     children = [
       # Start the Ecto repository
-      DomainsCounterEx.Repo,
+      {DomainsCounterEx.RedisDB, repo_opts},
       # Start the endpoint when the application starts
       DomainsCounterExWeb.Endpoint
       # Starts a worker by calling: DomainsCounterEx.Worker.start_link(arg)

@@ -28,13 +28,13 @@ defmodule DomainsCounterExWeb.ConnCase do
     end
   end
 
-  setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(DomainsCounterEx.Repo)
-
-    unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(DomainsCounterEx.Repo, {:shared, self()})
-    end
-
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
-  end
+#  setup tags do
+#    :ok = Ecto.Adapters.SQL.Sandbox.checkout(DomainsCounterEx.Repo)
+#
+#    unless tags[:async] do
+#      Ecto.Adapters.SQL.Sandbox.mode(DomainsCounterEx.Repo, {:shared, self()})
+#    end
+#
+#    {:ok, conn: Phoenix.ConnTest.build_conn()}
+#  end
 end

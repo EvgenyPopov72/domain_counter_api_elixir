@@ -22,7 +22,7 @@ defmodule DomainsCounterExWeb do
       use Phoenix.Controller, namespace: DomainsCounterExWeb
 
       import Plug.Conn
-      import DomainsCounterExWeb.Gettext
+      #      import DomainsCounterExWeb.Gettext
       alias DomainsCounterExWeb.Router.Helpers, as: Routes
     end
   end
@@ -37,7 +37,7 @@ defmodule DomainsCounterExWeb do
       import Phoenix.Controller, only: [get_flash: 1, get_flash: 2, view_module: 1]
 
       import DomainsCounterExWeb.ErrorHelpers
-      import DomainsCounterExWeb.Gettext
+      #      import DomainsCounterExWeb.Gettext
       alias DomainsCounterExWeb.Router.Helpers, as: Routes
     end
   end
@@ -47,13 +47,6 @@ defmodule DomainsCounterExWeb do
       use Phoenix.Router
       import Plug.Conn
       import Phoenix.Controller
-    end
-  end
-
-  def channel do
-    quote do
-      use Phoenix.Channel
-      import DomainsCounterExWeb.Gettext
     end
   end
 

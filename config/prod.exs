@@ -13,6 +13,9 @@ config :domains_counter_ex, DomainsCounterExWeb.Endpoint,
   url: [host: "example.com", port: 80],
   cache_static_manifest: "priv/static/cache_manifest.json"
 
+config :domains_counter_ex, DomainsCounterEx.Repo,
+  redis_uri: "redis://localhost:6379/0"
+
 # Do not print debug messages in production
 config :logger, level: :info
 
