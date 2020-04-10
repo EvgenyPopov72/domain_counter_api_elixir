@@ -1,7 +1,7 @@
 use Mix.Config
 
 # Configure your database
-config :domains_counter_ex, DomainsCounterEx.Repo,
+config :domains_counter_ex,
   redis_uri: "redis://localhost:6379/0"
 
 # For development, we disable any cache and enable

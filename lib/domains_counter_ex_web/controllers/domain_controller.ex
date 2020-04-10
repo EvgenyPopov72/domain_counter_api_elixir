@@ -15,52 +15,43 @@ defmodule DomainsCounterExWeb.DomainController do
     {:ok, result} = RedisDB.save_domains(domains)
     Logger.debug("save_links: #{inspect(result)}")
 
-    render(
-      conn,
-      "save_links.json",
-      result: %{
-        "result" => "ok"
-      }
-    )
+    render(conn, "save_links.json", result: %{"result" => "ok"})
   end
 
   def save_links(conn, params) do
     conn
-        |> put_status(400)
-        |> put_view(DomainsCounterExWeb.ErrorView)
-        |> render("400.json",
-             %{message: "#{inspect(params)} - is not a list"})
-  end
-
-  def show_domains(conn, %{"from" => from, "to" => to}) do
-    try do
-      {_from, ""} = Float.parse(from)
-      {_to, ""} = Float.parse(to)
-    rescue
-      MatchError ->
-      conn
-        |> put_status(400)
-        |> put_view(DomainsCounterExWeb.ErrorView)
-        |> render("400.json",
-             %{message: "Params 'from', 'to' are not a numbers"})
-    end
-
-    {:ok, domains} = RedisDB.get_domains(from, to)
-    render(
-      conn,
-      "show_domains.json",
-      result: %{
-        "domains" => domains,
-        "status" => "ok",
-      }
+    |> put_status(400)
+    |> put_view(DomainsCounterExWeb.ErrorView)
+    |> render(
+      "400.json",
+      %{message: "#{inspect(params)} - is not a list"}
     )
   end
 
+  def show_domains(conn, %{"from" => from, "to" => to}) do
+    with {parsed_from, ""} <- Float.parse(from),
+         {parsed_to, ""} <- Float.parse(to) do
+      {:ok, domains} = RedisDB.get_domains(parsed_from, parsed_to)
+
+      render(
+        conn,
+        "show_domains.json",
+        result: %{"domains" => domains, "status" => "ok"}
+      )
+    else
+      :error ->
+        show_domains_error(conn, "Params 'from' or 'to' are not a number")
+    end
+  end
+
   def show_domains(conn, _) do
+    show_domains_error(conn, "Params 'from', 'to' are not a numbers")
+  end
+
+  defp show_domains_error(conn, msg) do
     conn
-        |> put_status(400)
-        |> put_view(DomainsCounterExWeb.ErrorView)
-        |> render("400.json",
-             %{message: "Params 'from', 'to' are not a numbers"})
+    |> put_status(400)
+    |> put_view(DomainsCounterExWeb.ErrorView)
+    |> render("400.json", %{message: msg})
   end
 end

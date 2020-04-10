@@ -11,15 +11,16 @@ defmodule DomainsCounterEx.RedisDB do
   end
 
   def save_domains(domains) when is_list(domains) do
-    ts = DateTime.utc_now |> DateTime.to_unix
-    args = (for domain <- domains, do: [ts, domain]) |> List.flatten
+    ts = DateTime.utc_now() |> DateTime.to_unix()
+    args = for(domain <- domains, do: [ts, domain]) |> List.flatten()
     {:ok, _} = Redix.command(:redix, ["ZADD", "domains" | args])
   end
 
   def get_domains(from, to) do
-    {:ok, _} = Redix.command(
-      :redix,
-      ["ZRANGEBYSCORE", "domains", from, to]
-    )
+    {:ok, _} =
+      Redix.command(
+        :redix,
+        ["ZRANGEBYSCORE", "domains", from, to]
+      )
   end
 end

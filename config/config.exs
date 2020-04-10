@@ -7,12 +7,6 @@
 # General application configuration
 use Mix.Config
 
-config :domains_counter_ex,
-  redis_uri: "redis://localhost:6379/0"
-
-config :domains_counter_ex,
-  ecto_repos: [DomainsCounterEx.Repo]
-
 # Configures the endpoint
 config :domains_counter_ex, DomainsCounterExWeb.Endpoint,
   url: [host: "localhost"],
