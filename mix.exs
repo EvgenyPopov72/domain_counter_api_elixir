@@ -34,10 +34,6 @@ defmodule DomainsCounterEx.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.4.16"},
-      #      {:phoenix_pubsub, "~> 1.1"},
-      #      {:phoenix_ecto, "~> 4.0"},
-      #      {:ecto_sql, "~> 3.1"},
-      #      {:postgrex, ">= 0.0.0"},
       {:redix, "~> 0.10.5"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
@@ -52,10 +48,6 @@ defmodule DomainsCounterEx.MixProject do
   #
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
-    [
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate", "test"]
-    ]
+    []
   end
 end

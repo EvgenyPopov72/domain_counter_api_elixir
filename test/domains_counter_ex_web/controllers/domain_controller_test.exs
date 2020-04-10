@@ -1,82 +1,83 @@
 defmodule DomainsCounterExWeb.DomainControllerTest do
   use DomainsCounterExWeb.ConnCase
 
-  alias DomainsCounterEx.Domains
-  alias DomainsCounterEx.Domains.Domain
-
-  @create_attrs %{}
-  @update_attrs %{}
-  @invalid_attrs %{}
-
-  def fixture(:domain) do
-    {:ok, domain} = Domains.create_domain(@create_attrs)
-    domain
-  end
+  @create_attrs [0, "ya.ru", 42, "elixir-lang.org", 99, "google.com"]
 
   setup %{conn: conn} do
+    {:ok, _} = Redix.command(:redix, ["FLUSHALL"])
     {:ok, conn: put_req_header(conn, "accept", "application/json")}
   end
 
-  describe "index" do
-    test "lists all domains", %{conn: conn} do
-      conn = get(conn, Routes.domain_path(conn, :index))
-      assert json_response(conn, 200)["data"] == []
+  describe "show_domains" do
+    test "lists all domains without params", %{conn: conn} do
+      conn = get(conn, Routes.domain_path(conn, :show_domains))
+      assert conn.status == 400
+    end
+
+    test "lists all domains with invalid param `from`", %{conn: conn} do
+      conn = get(
+        conn, Routes.domain_path(conn, :show_domains),
+        from: "invalid", to: "100"
+      )
+      assert conn.status == 400
+    end
+
+    test "lists all domains with invalid param `to`", %{conn: conn} do
+      conn = get(
+        conn, Routes.domain_path(conn, :show_domains),
+        from: "0", to: "invalid"
+      )
+      assert conn.status == 400
+    end
+
+    test "lists all domains with valid params", %{conn: conn} do
+      {:ok, _} = Redix.command(:redix, ["ZADD", "domains" | @create_attrs])
+
+      conn = get(
+        conn, Routes.domain_path(conn, :show_domains),
+        from: "0", to: "42"
+      )
+      assert json_response(conn, 200) ==
+               %{"domains" => ["ya.ru", "elixir-lang.org"], "status" => "ok"}
+
+      conn = get(
+        conn, Routes.domain_path(conn, :show_domains),
+        from: "10", to: "42"
+      )
+      assert json_response(conn, 200) ==
+               %{"domains" => ["elixir-lang.org"], "status" => "ok"}
+
+      conn = get(
+        conn, Routes.domain_path(conn, :show_domains),
+        from: "43", to: "100"
+      )
+      assert json_response(conn, 200) ==
+               %{"domains" => ["google.com"], "status" => "ok"}
+
+      conn = get(
+        conn, Routes.domain_path(conn, :show_domains),
+        from: "100", to: "1000"
+      )
+      assert json_response(conn, 200) ==
+               %{"domains" => [], "status" => "ok"}
     end
   end
 
-  describe "create domain" do
-    test "renders domain when data is valid", %{conn: conn} do
-      conn = post(conn, Routes.domain_path(conn, :create), domain: @create_attrs)
-      assert %{"id" => id} = json_response(conn, 201)["data"]
+  describe "save_links" do
+    test "save no links", %{conn: conn} do
+      conn = post(
+        conn,
+        Routes.domain_path(conn, :save_links),
+        %{links: ["ya.ru", "google.com", "funbox.ru"]}
+      )
+      assert conn.status == 200
 
-      conn = get(conn, Routes.domain_path(conn, :show, id))
-
-      assert %{
-               "id" => id
-             } = json_response(conn, 200)["data"]
+      ts = DateTime.utc_now |> DateTime.to_unix |> Integer.to_string
+      {:ok, result} = Redix.command(
+        :redix,
+        ["ZRANGEBYSCORE", "domains", "-inf", "+inf", "WITHSCORES"]
+      )
+      assert result == ["funbox.ru", ts, "google.com", ts, "ya.ru", ts]
     end
-
-    test "renders errors when data is invalid", %{conn: conn} do
-      conn = post(conn, Routes.domain_path(conn, :create), domain: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
-    end
-  end
-
-  describe "update domain" do
-    setup [:create_domain]
-
-    test "renders domain when data is valid", %{conn: conn, domain: %Domain{id: id} = domain} do
-      conn = put(conn, Routes.domain_path(conn, :update, domain), domain: @update_attrs)
-      assert %{"id" => ^id} = json_response(conn, 200)["data"]
-
-      conn = get(conn, Routes.domain_path(conn, :show, id))
-
-      assert %{
-               "id" => id
-             } = json_response(conn, 200)["data"]
-    end
-
-    test "renders errors when data is invalid", %{conn: conn, domain: domain} do
-      conn = put(conn, Routes.domain_path(conn, :update, domain), domain: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
-    end
-  end
-
-  describe "delete domain" do
-    setup [:create_domain]
-
-    test "deletes chosen domain", %{conn: conn, domain: domain} do
-      conn = delete(conn, Routes.domain_path(conn, :delete, domain))
-      assert response(conn, 204)
-
-      assert_error_sent 404, fn ->
-        get(conn, Routes.domain_path(conn, :show, domain))
-      end
-    end
-  end
-
-  defp create_domain(_) do
-    domain = fixture(:domain)
-    {:ok, domain: domain}
   end
 end
