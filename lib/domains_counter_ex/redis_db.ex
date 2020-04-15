@@ -10,17 +10,27 @@ defmodule DomainsCounterEx.RedisDB do
     {:ok, "PONG"} = Redix.command(:redix, ["PING"])
   end
 
-  def save_domains(domains) when is_list(domains) do
+  def handle_call({:save_domains, domains}, _from, opts)do
     ts = DateTime.utc_now() |> DateTime.to_unix()
     args = for(domain <- domains, do: [ts, domain]) |> List.flatten()
-    {:ok, _} = Redix.command(:redix, ["ZADD", "domains" | args])
+    {:ok, result} = Redix.command(:redix, ["ZADD", "domains" | args])
+    {:reply, result, opts}
   end
 
-  def get_domains(from, to) do
-    {:ok, _} =
+  def handle_call({:get_domains, from, to}, _from, opts) do
+    {:ok, domains} =
       Redix.command(
         :redix,
         ["ZRANGEBYSCORE", "domains", from, to]
       )
+    {:reply, domains, opts}
+  end
+
+  def save_domains(domains) when is_list(domains) do
+    GenServer.call(__MODULE__, {:save_domains, domains})
+  end
+
+  def get_domains(from, to) do
+    GenServer.call(__MODULE__, {:get_domains, from, to})
   end
 end

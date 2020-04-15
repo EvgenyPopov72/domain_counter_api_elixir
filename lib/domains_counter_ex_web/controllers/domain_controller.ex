@@ -12,7 +12,7 @@ defmodule DomainsCounterExWeb.DomainController do
 
   def save_links(conn, %{"links" => links}) when is_list(links) do
     domains = for link <- links, do: link_to_domain(link)
-    {:ok, result} = RedisDB.save_domains(domains)
+    result = RedisDB.save_domains(domains)
     Logger.debug("save_links: #{inspect(result)}")
 
     render(conn, "save_links.json", result: %{"result" => "ok"})
@@ -31,7 +31,7 @@ defmodule DomainsCounterExWeb.DomainController do
   def show_domains(conn, %{"from" => from, "to" => to}) do
     with {parsed_from, ""} <- Float.parse(from),
          {parsed_to, ""} <- Float.parse(to) do
-      {:ok, domains} = RedisDB.get_domains(parsed_from, parsed_to)
+      domains = RedisDB.get_domains(parsed_from, parsed_to)
 
       render(
         conn,
